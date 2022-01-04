@@ -1,0 +1,8 @@
+Déterminer honeypots à utiliser
+Déterminer SIEM à utiliser =< Splunk
+Déterminer infrastructure adaptée.
+Implémenter premier honeypot
+Implémenter SIEM (Splunk)
+Connecter les 2
+Implémenter nombreuses options -> file integrity monitoring etc..
+Rajouter d'autres honeypots a notre splunk
