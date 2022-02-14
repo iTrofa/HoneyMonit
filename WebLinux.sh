@@ -65,3 +65,53 @@ python wordpot.py
 #python wordpot --theme=twentyeleven
 
 # create dmz on home network
+
+##### pre-requesite to join AD #####
+
+hostnamectl set-hostname Web.HoneypotsMonit.local
+systemctl disable systemd-resolved
+systemctl stop systemd-resolved
+apt -y install realmd libnss-sss libpam-sss sssd sssd-tools adcli samba-common-bin oddjob oddjob-mkhomedir packagekit 
+sudo vim /etc/resolv.conf 
+        nameserver IP_OF_Domain_Controler  
+realm discover HoneypotsMonit.local
+sudo realm join -U administrator HoneypotsMonit.local
+    ---> password for administrator:      
+sudo realm list  
+cat > /usr/share/pam-configs/mkhomedir << EOFA
+Name: activate mkhomedir
+Default: yes
+Priority: 900
+Session-Type: Additional
+Session:
+        required                        pam_mkhomedir.so umask=0022 skel=/etc/skel
+EOFA
+sudo pam-auth-update
+
+#Select <OK>
+
+sudo systemctl restart sssd
+systemctl status sssd
+id administrator@HoneypotsMonit
+ssh administrator@HoneypotsMonit.local
+apt-get install auditd audispd-plugins -y
+
+# apt-get -y install libreadline-dev libevent-dev libdumpnet-dev libdumbnet-dev libpcre3-dev libedit-dev bison flex automake zlib1g-dev libdnet# for honeyd we didn't use in the end
+
+##### we setup for use of forwarder #####
+
+# splunk -> settings -> forwarding and receiving -> receiving -> port 9997
+cd /opt/splunkforwarder/bin
+./splunk add forward-server 192.168.7.130:9997
+./splunk add monitor /var/log/audit/audit.log -index VM_WEB -sourcetype syslog
+./splunk set deploy-poll 192.168.7.128:8089
+./splunk start
+# on linux iTrofa : Admin123 as forwarder-server password as asked 
+# configured but inactive
+
+
+# configure splunk forwarder linux https://community.splunk.com/t5/All-Apps-and-Add-ons/How-do-I-configure-a-Splunk-Forwarder-on-Linux/m-p/72078
+
+#auditd - i restart auditd and deleted log, will add one rule now
+
+# solution mettre Web:8089 pour le deploy-poll (127.0.0.1:8089)
