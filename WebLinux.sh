@@ -104,7 +104,8 @@ apt-get install auditd audispd-plugins -y
 cd /opt/splunkforwarder/bin
 ./splunk add forward-server 192.168.7.130:9997
 ./splunk add monitor /var/log/audit/audit.log -index VM_WEB -sourcetype syslog
-./splunk set deploy-poll 192.168.7.128:8089
+./splunk set deploy-poll Web:8089
+
 ./splunk start
 # on linux iTrofa : Admin123 as forwarder-server password as asked 
 # configured but inactive
@@ -115,3 +116,5 @@ cd /opt/splunkforwarder/bin
 #auditd - i restart auditd and deleted log, will add one rule now
 
 # solution mettre Web:8089 pour le deploy-poll (127.0.0.1:8089)
+
+# auditd and honeyfiles https://ironmoon.net/2018/05/19/File-Based-Honeypots-with-Auditd.html
