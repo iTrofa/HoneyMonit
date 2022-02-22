@@ -1,0 +1,211 @@
+Splunk Server 
+
+Installation : 
+
+1/installing addons for windows  
+2/modifying C:\Program Files\Splunk\etc\apps\Splunk_TA_windows\default\inputs.conf   
+
+\Splunk_TA_windows\local\inputs.conf   
+
+###### SYSMON ######
+[WinEventLog://Microsoft-Windows-Sysmon/Operational]
+index = wineventlog
+checkpointInterval = 5
+current_only = 0
+disabled = 0 
+start_from = oldest
+
+splunk -> setting -> indexes -> new index 
+								|_index name:wineventlog --> save 
+
+verify the name on \local\inputs : 
+	|_index: wineventlog FOR sysmon,system,security
+-----------------------------------------------------------------------------
+
+###### Windows Update Log ######
+## Enable below stanza to get WindowsUpdate.log for Windows 8, Windows 8.1, Server 2008R2, Server 2012 and Server 2012R2
+[monitor://$WINDIR\WindowsUpdate.log]
+disabled = 1
+sourcetype = WindowsUpdateLog
+
+## Enable below powershell and monitor stanzas to get WindowsUpdate.log for Windows 10 and Server 2016
+## Below stanza will automatically generate WindowsUpdate.log daily
+[powershell://generate_windows_update_logs]
+script = ."$SplunkHome\etc\apps\Splunk_TA_windows\bin\powershell\generate_windows_update_logs.ps1"
+schedule = 0 */24 * * *
+disabled = 1
+index = winupdatelog    ======> added 
+
+## Below stanza will monitor the generated WindowsUpdate.log in Windows 10 and Server 2016
+[monitor://$SPLUNK_HOME\var\log\Splunk_TA_windows\WindowsUpdate.log]
+disabled = 1
+index = winupdatelog    ======> added 
+sourcetype = WindowsUpdateLog
+
+splunk -> setting -> indexes -> new index 
+								|_index name:winupdatelog --> save 
+								
+								
+-----------------------------------------------------------------------------
+
+###### Host monitoring ######
+[WinHostMon://Computer]
+interval = 600
+disabled = 1
+index = hostmonitoring  ======> added
+type = Computer
+
+[WinHostMon://Process]
+interval = 600
+disabled = 1
+index = hostmonitoring  ======> added
+type = Process
+
+[WinHostMon://Processor]
+interval = 600
+disabled = 1
+index = hostmonitoring  ======> added
+type = Processor
+
+[WinHostMon://NetworkAdapter]
+interval = 600
+disabled = 1
+index = hostmonitoring ======> added
+type = NetworkAdapter
+
+[WinHostMon://Service]
+interval = 600
+disabled = 1
+index = hostmonitoring  ======> added
+type = Service
+
+[WinHostMon://OperatingSystem]
+interval = 600
+disabled = 1
+index = hostmonitoring ======> added
+type = OperatingSystem
+
+[WinHostMon://Disk]
+interval = 600
+disabled = 1
+index = hostmonitoring  ======> added
+type = Disk
+
+
+splunk -> setting -> indexes -> new index 
+								|_index name:hostmonitoring --> save 
+
+-----------------------------------------------------------------------------
+
+
+###### Splunk 5.0+ Performance Counters ######
+## CPU
+[perfmon://CPU]
+counters = % Processor Time; % User Time; % Privileged Time; Interrupts/sec; % DPC Time; % Interrupt Time; DPCs Queued/sec; DPC Rate; % Idle Time; % C1 Time; % C2 Time; % C3 Time; C1 Transitions/sec; C2 Transitions/sec; C3 Transitions/sec
+disabled = 1
+index = perfmoncpu  ======> added
+instances = *
+interval = 10
+mode = multikv
+object = Processor
+useEnglishOnly=true
+
+
+splunk -> setting -> indexes -> new index 
+								|_index name:perfmoncpu --> save 
+
+-----------------------------------------------------------------------------
+
+## Logical Disk
+[perfmon://LogicalDisk]
+counters = % Free Space; Free Megabytes; Current Disk Queue Length; % Disk Time; Avg. Disk Queue Length; % Disk Read Time; Avg. Disk Read Queue Length; % Disk Write Time; Avg. Disk Write Queue Length; Avg. Disk sec/Transfer; Avg. Disk sec/Read; Avg. Disk sec/Write; Disk Transfers/sec; Disk Reads/sec; Disk Writes/sec; Disk Bytes/sec; Disk Read Bytes/sec; Disk Write Bytes/sec; Avg. Disk Bytes/Transfer; Avg. Disk Bytes/Read; Avg. Disk Bytes/Write; % Idle Time; Split IO/Sec
+disabled = 1
+index = perflogicaldisk
+instances = *
+interval = 10
+mode = multikv
+object = LogicalDisk
+useEnglishOnly=true
+
+
+splunk -> setting -> indexes -> new index 
+								|_index name:perflogicaldisk --> save 
+								
+-----------------------------------------------------------------------------						
+								
+## Physical Disk
+[perfmon://PhysicalDisk]
+counters = Current Disk Queue Length; % Disk Time; Avg. Disk Queue Length; % Disk Read Time; Avg. Disk Read Queue Length; % Disk Write Time; Avg. Disk Write Queue Length; Avg. Disk sec/Transfer; Avg. Disk sec/Read; Avg. Disk sec/Write; Disk Transfers/sec; Disk Reads/sec; Disk Writes/sec; Disk Bytes/sec; Disk Read Bytes/sec; Disk Write Bytes/sec; Avg. Disk Bytes/Transfer; Avg. Disk Bytes/Read; Avg. Disk Bytes/Write; % Idle Time; Split IO/Sec
+disabled = 1
+index = perfphysicaldisk ======> added
+instances = *
+interval = 10
+mode = multikv
+object = PhysicalDisk
+useEnglishOnly=true
+
+perfphysicaldisk
+
+
+splunk -> setting -> indexes -> new index 
+								|_index name:perfphysicaldisk --> save 
+								
+-----------------------------------------------------------------------------
+
+
+## memory 
+
+index = perfmonmemory
+
+splunk -> setting -> indexes -> new index 
+								|_index name:perfmonmemory --> save 
+-----------------------------------------------------------------------------
+## Network 
+
+index = perfmonnetwork
+
+splunk -> setting -> indexes -> new index 
+								|_index name:perfmonnetwork --> save 
+-----------------------------------------------------------------------------
+## Process
+index = perfmonprocess
+
+splunk -> setting -> indexes -> new index 
+								|_index name:perfmonprocess --> save 
+								
+-----------------------------------------------------------------------------
+##ProcessInformation
+
+index = perfmonprocessInformation
+splunk -> setting -> indexes -> new index 
+								|_index name:perfmonprocessInformation --> save
+								
+-----------------------------------------------------------------------------
+##System
+index = perfmonsystem
+splunk -> setting -> indexes -> new index 
+								|_index name:perfmonsystem --> save 
+		
+-----------------------------------------------------------------------------
+we've created sparated indexes as per need and map to log files: 
+
+3-enabling log collection by changing the value for disabled to zero : 
+os logs || wineventlog://security || wineventlog://system || windows update log 
+|| scripted input || host monitoring || services || processu|| OperatingSystem 
+||disk || splunk 5 .. || logicaldisk || physicaldisk || memory|| network ||
+processu|| processinformation || system || 
+
+4- cmd
+cd C:\\program files\\splunk\\bin> splunk restart 
+
+=========  Installer et configurer Splunk Universal Forwarder sous Windows =================
+
+1-configure Splunk tcp port 9997 to receive forwarded logs from windows: 
+
+http://localhost:8000/en-US/manager/search/adddatamethods/selectforwarders
+
+Forwarding and receiving -> Configure receiving -> Listen on this port: 9001
+--> check from remote PC , you can telnet to splunk port 9001 
+on windows 10 pro : --> install the forwarder by specifying the IP splunk server  
+
+`192.168.43.18 or whateverYourIP` 
