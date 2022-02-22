@@ -1,0 +1,58 @@
+AD  - winServ2019
+Domain controller : 
+
+local server --> computer name (ServerSec)  
+Turn on updates (be careful to access those)  
+Ethernet ==> static_IPv4   
+
+AD:  CYBERSEC\administrator
+
+Add rules and features :  
+	-server roles  ===> AD domain services 
+	-Group Policy management  
+Post-deployemnt conf: 
+	*Promote this server to a domain controller  
+	*Add a new forest (groups of domains) --> root domain name: CyberSec.local 
+	*give the password to the AD (DSRM)  
+	*NetBios ===> CyberSec 
+
+scenario : ==================================================== 
+Remote a small entreprise :   
+1 - centre (centre_Cyber)
+	*Admin Departement "Administrative_centre" 
+	*tech Departement "Technical_centre"
+	
+	-South of FRANCE "South_FR_Location" : They don't have access to centre departements 
+		*employee 
+		*Technicians  
+===============================================================
+Tools --> AD users and computers 
+	-New --> Org Unit --> centre_Cyber 
+	-new --> Group --> Administrative_centre and Technical_centre   
+		---> create an OrgUnit ---> computerCentre 
+	*New --> Org Unit --> South_FR_Location  
+	*new --> Group --> Employee and Technicians 
+		---> create an OrgUnit ---> computerSouth 
+		
+Add users:   
+	At computerCentre : 
+		new --> users --> username/password --> add to group --> Administrative_centre
+		new --> users --> username/password --> add to group --> Technical_centre 
+	
+Add a computer (win10) :  Start > Access work or school > join as Administrator 
+	configure the computer of take a static IP and DNS of winServ2019 
+	computerName -> change_setting -> Member of -> Domain -> CyberSec.local  
+
+DNS :  
+
+Tools --> DNS 
+			|__ Reverse lookup Zones -> New zone -> select primary zone -> store zone in AD 
+			|__To all DNS servers running "second_choice" -> IPv4 reverse -> 
+			|__Network_ID "192.168.43" ==>Done 
+		Foward lookup zones:
+			|__CyberSec.local -> select the server and select update associated pointer(PTD)record
+		Foward lookup zones:
+			|__refresh 
+	Ethernet ===> proprieties ==> preference DNS server ==> IPv4_server  
+	
+	*powershell: nslookup > IP > CyberSec.local
