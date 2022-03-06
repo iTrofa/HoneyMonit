@@ -118,3 +118,20 @@ cd /opt/splunkforwarder/bin
 # solution mettre Web:8089 pour le deploy-poll (127.0.0.1:8089)
 
 # auditd and honeyfiles https://ironmoon.net/2018/05/19/File-Based-Honeypots-with-Auditd.html
+
+#### File Integrity Monitoring ####
+
+#apt-cache policy aide => interesting command tells us versions in debian repos
+# for aide they aren't the most up to date
+
+apt -y install aide
+
+# we got hostname error to solve -> in 127.0.0.1 /etc/hosts and /etc/hostname it must be the same, no spaces, 1 period
+
+aideinit
+
+cp /var/lib/aide/aide.db{.new,}
+# add the following line to /etc/aide/aide.conf
+
+report_url=syslog:LOG_AUTH
+
