@@ -135,3 +135,47 @@ cp /var/lib/aide/aide.db{.new,}
 
 report_url=syslog:LOG_AUTH
 
+
+#### Honeypot Cowrie #### https://wjmccann.github.io/blog/2017/08/17/Cowrie-Honeypot-and-Splunk
+
+apt-get install git virtualenv libssl-dev libffi-dev build-essential libpython-dev python2.7-minimal authbind python2.7-dev iptables
+adduser --disabled-password cowrie
+su cowrie
+git clone http://github.com/micheloosterhof/cowrie
+cd cowrie
+virtualenv cowrie-env
+source cowrie-env/bin/activate
+pip install -r requirements.txt
+cd etc
+cp cowrie.cfg.dist cowrie.cfg
+# change ssh port to other than 22
+iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
+iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 222 # for SSH Bruteforcing alert test
+# it's now installed  - we now install tango honeypot splunk helper
+git clone https://github.com/aplura/Tango.git /tmp/tango; chmod +x /tmp/tango/uf_only.sh
+cd /tmp/tango/
+./uf_only.sh # correct script link doesn't work vmware login i think
+# remove error checks and sudo command and wget 
+# Log file to watch for /home/cowrie/cowrie/var/log/cowrie/cowrie.log
+# use trello helps
+# get script to monitor attack
+# go to settings -> roles -> admin default indexes -> give index "honeypot" right column and save
+# had to use splunkforwarder backup because of chown issues, root:root works for both indexes
+
+#### Bonus Endlessh Port 2222 look for github ####
+
+
+######## AD search queries for Linux Web #########
+
+# List of failed login attempts by users
+index="vm_web" type=user_login res=failed | stats count by acct| sort - count 
+# Alert created : every 5 minutes, triggered alert - critical #
+
+
+ 
+######## Attack script to trigger alerts etc.. ########
+
+hydra -vV -I -l root -s 22 -t 3 -P password.txt ssh://192.168.7.128
+# lynis
+git clone https://github.com/CISOfy/lynis
+cd lynis && ./lynis audit system
